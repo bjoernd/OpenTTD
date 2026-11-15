@@ -2,8 +2,8 @@
 
 > [!IMPORTANT]
 > **This is a private fork, not OpenTTD itself.** It is not regularly
-> maintained. It collects patches written with an LLM's help on top of
-> regular OpenTTD, each on its own branch. The patches are not submitted
+> maintained. It collects patches written with an LLM's help, merged into
+> `master` on top of regular OpenTTD. The patches are not submitted
 > to or endorsed by the OpenTTD project. For OpenTTD, see
 > [github.com/OpenTTD/OpenTTD](https://github.com/OpenTTD/OpenTTD) and
 > [openttd.org](https://www.openttd.org).
