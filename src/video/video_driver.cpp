@@ -33,7 +33,8 @@ void VideoDriver::GameLoop()
 
 	/* Avoid next_game_tick getting behind more and more if it cannot keep up. */
 	auto now = std::chrono::steady_clock::now();
-	if (this->next_game_tick < now - ALLOWED_DRIFT * this->GetGameInterval()) this->next_game_tick = now;
+	auto allowed_drift = std::max<std::chrono::steady_clock::duration>(ALLOWED_DRIFT * this->GetGameInterval(), this->min_allowed_drift);
+	if (this->next_game_tick < now - allowed_drift) this->next_game_tick = now;
 
 	{
 		std::lock_guard<std::mutex> lock(this->game_state_mutex);
@@ -103,15 +104,21 @@ void VideoDriver::StopGameThread()
 
 void VideoDriver::Tick()
 {
-	if (!this->is_game_threaded && std::chrono::steady_clock::now() >= this->next_game_tick) {
-		this->GameLoop();
+	if (!this->is_game_threaded) {
+		/* Run the game ticks that are due while the budget lasts; without a budget, at most one. */
+		const auto budget_end = std::chrono::steady_clock::now() + this->game_tick_budget;
+		do {
+			if (std::chrono::steady_clock::now() < this->next_game_tick) break;
 
-		/* For things like dedicated server, don't run a separate draw-tick. */
-		if (!this->HasGUI()) {
-			::InputLoop();
-			::UpdateWindows();
-			this->next_draw_tick = this->next_game_tick;
-		}
+			this->GameLoop();
+
+			/* For things like dedicated server, don't run a separate draw-tick. */
+			if (!this->HasGUI()) {
+				::InputLoop();
+				::UpdateWindows();
+				this->next_draw_tick = this->next_game_tick;
+			}
+		} while (std::chrono::steady_clock::now() < budget_end);
 	}
 
 	auto now = std::chrono::steady_clock::now();

@@ -381,6 +381,8 @@ protected:
 	bool fast_forward_key_pressed = false; ///< The fast-forward key is being pressed.
 	bool fast_forward_via_key = false; ///< The fast-forward was enabled by key press.
 	bool is_game_threaded = true; ///< Whether the game is allowed to use threads; cleared in the driver implementation constructors if required.
+	std::chrono::steady_clock::duration game_tick_budget{}; ///< Without a game thread, how long one Tick() may run game ticks that are due; zero runs at most one.
+	std::chrono::steady_clock::duration min_allowed_drift{}; ///< Lower bound for how far the game may fall behind before missed ticks are dropped.
 
 	static void GameThreadThunk(VideoDriver *drv);
 
