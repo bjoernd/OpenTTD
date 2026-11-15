@@ -691,6 +691,12 @@ std::optional<std::string_view> VideoDriver_SDL_Base::Start(const StringList &pa
 
 #ifdef __EMSCRIPTEN__
 	this->is_game_threaded = false;
+	/* The browser calls Tick() once per animation frame, so the game ticks due
+	 * since the previous frame run in one go. They may take part of the frame,
+	 * leaving the rest for drawing, and are not missed deadlines; without this,
+	 * fast-forward could not go faster than the display's refresh rate. */
+	this->game_tick_budget = std::chrono::milliseconds(10);
+	this->min_allowed_drift = std::chrono::milliseconds(100);
 #else
 	this->is_game_threaded = !GetDriverParamBool(param, "no_threads") && !GetDriverParamBool(param, "no_thread");
 #endif
